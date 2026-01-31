@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: url-platform
+  namespace: argocd
+spec:
+  description: URL Platform GitOps project
+  sourceRepos:
+    - https://github.com/gal-halevi/production-url-platform
+    - https://github.com/gal-halevi/production-url-platform-gitops
+  destinations:
+    - namespace: url-platform-dev
+      server: https://kubernetes.default.svc
+    - namespace: url-platform-stg
+      server: https://kubernetes.default.svc
+    - namespace: url-platform-prod
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: ""
+      kind: Service
+    - group: "apps"
+      kind: Deployment
+    - group: "networking.k8s.io"
+      kind: Ingress
+    - group: ""
+      kind: Secret
