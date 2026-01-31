@@ -1,20 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: url-platform-dev
+  name: url-platform-stg
   namespace: argocd
 spec:
   project: url-platform
   destination:
     server: https://kubernetes.default.svc
-    namespace: url-platform-dev
+    namespace: url-platform-stg
   sources:
     - repoURL: https://github.com/gal-halevi/production-url-platform
       targetRevision: main
       path: charts/url-platform
       helm:
         valueFiles:
-          - $values/envs/dev/values.yaml
+          - $values/envs/stg/values.yaml
     - repoURL: https://github.com/gal-halevi/production-url-platform-gitops
       targetRevision: main
       ref: values
