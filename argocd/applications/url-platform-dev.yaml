@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: url-platform-dev
+  namespace: argocd
+spec:
+  project: url-platform
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: url-platform-dev
+
+  sources:
+    # Source 1: the Helm chart (app repo)
+    - repoURL: https://github.com/gal-halevi/production-url-platform
+      targetRevision: main
+      path: charts/url-platform
+      helm:
+        valueFiles:
+          # Source 2 ref below
+          - $values/envs/dev/values.yaml
+
+    # Source 2: environment values (gitops repo)
+    - repoURL: https://github.com/gal-halevi/production-url-platform-gitops
+      targetRevision: main
+      ref: values
+
+  syncPolicy:
+    automated: null
+    syncOptions:
+      - CreateNamespace=true
