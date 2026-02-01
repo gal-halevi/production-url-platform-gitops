@@ -32,3 +32,6 @@ ingress:
     api: api.url-platform.example
     redirect: r.url-platform.example
     analytics: analytics.url-platform.example
+
+global:
+  appEnv: prod

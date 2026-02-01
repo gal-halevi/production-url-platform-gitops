@@ -20,3 +20,6 @@ ingress:
 
 urlService:
   baseUrl: http://r.stg.url-platform.local
+
+global:
+  appEnv: stg
