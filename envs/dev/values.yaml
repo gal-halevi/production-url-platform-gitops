@@ -14,3 +14,6 @@ ingress:
 
 urlService:
   baseUrl: http://r.dev.url-platform.local
+
+global:
+  appEnv: dev
