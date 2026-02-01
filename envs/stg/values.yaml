@@ -1,25 +1,21 @@
 images:
   urlService:
-    tag: sha-01e0766
+    tag: sha-1fd02b9
   redirectService:
     tag: sha-01e0766
   analyticsService:
     tag: sha-01e0766
-
 replicaCount:
   urlService: 2
   redirectService: 2
   analyticsService: 1
   postgres: 1
-
 ingress:
   hosts:
     api: api.stg.url-platform.example
     redirect: r.stg.url-platform.example
     analytics: analytics.stg.url-platform.example
-
 urlService:
   baseUrl: http://r.stg.url-platform.local
-
 global:
   appEnv: stg
