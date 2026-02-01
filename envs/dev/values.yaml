@@ -1,19 +1,16 @@
 images:
   urlService:
-    tag: sha-01e0766
+    tag: sha-1fd02b9
   redirectService:
     tag: sha-01e0766
   analyticsService:
     tag: sha-01e0766
-
 ingress:
   hosts:
     api: api.dev.url-platform.local
     redirect: r.dev.url-platform.local
     analytics: analytics.dev.url-platform.local
-
 urlService:
   baseUrl: http://r.dev.url-platform.local
-
 global:
   appEnv: dev
