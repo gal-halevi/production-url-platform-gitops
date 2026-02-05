@@ -15,10 +15,10 @@ ingress:
   # annotations:
   #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
-    api: api.url-platform.example
-    redirect: r.url-platform.example
-    analytics: analytics.url-platform.example
+    api: api.galhalevi.dev
+    redirect: r.galhalevi.dev
+    analytics: analytics.galhalevi.dev
 urlService:
-  baseUrl: http://r.url-platform.example
+  baseUrl: http://r.galhalevi.dev
 global:
   appEnv: prod

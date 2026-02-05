@@ -12,10 +12,10 @@ replicaCount:
   postgres: 1
 ingress:
   hosts:
-    api: api.stg.url-platform.example
-    redirect: r.stg.url-platform.example
-    analytics: analytics.stg.url-platform.example
+    api: api.stg.galhalevi.dev
+    redirect: r.stg.galhalevi.dev
+    analytics: analytics.stg.galhalevi.dev
 urlService:
-  baseUrl: http://r.stg.url-platform.local
+  baseUrl: http://r.stg.galhalevi.dev
 global:
   appEnv: stg
