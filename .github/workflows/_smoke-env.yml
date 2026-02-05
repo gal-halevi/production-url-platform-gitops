@@ -78,6 +78,10 @@ jobs:
           echo "Waiting for url-service /health to return expected version..."
           retry_until_deadline "$deadline" bash -lc '
             body="$(curl -sS --max-time 5 -H "Host: ${API_HOST}" "${INGRESS_ENDPOINT}/health")"
+
+            # If it is not JSON yet, keep retrying (quietly)
+            echo "$body" | jq -e . >/dev/null 2>&1 || exit 1
+
             echo "$body" | jq .
             ver="$(echo "$body" | jq -r .version)"
             [[ "$ver" == "${EXPECTED_URL_TAG}" ]]
@@ -102,7 +106,7 @@ jobs:
             body="$(curl -sS --max-time 5 -H "Host: ${ANALYTICS_HOST}" "${INGRESS_ENDPOINT}/stats/'"$code"'")"
             echo "$body" | jq .
             cnt="$(echo "$body" | jq -r .count)"
-            [[ "$cnt" -ge 1 ]]
+            [[ "$cnt" -ge 1 ]]fix/smoke-json-guard
           '
 
           echo "✅ Smoke test passed for env=${{ inputs.env }}"
