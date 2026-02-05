@@ -72,8 +72,8 @@ jobs:
             done
           }
 
-          # Budget: ~15 minutes total for all retries (job timeout is 15m)
-          deadline=$(( $(date +%s) + 15*60 ))
+          # Budget: ~17 minutes total for all retries (job timeout is 20m)
+          deadline=$(( $(date +%s) + 17*60 ))
 
           echo "Waiting for url-service /health to return expected version..."
           retry_until_deadline "$deadline" bash -lc '
