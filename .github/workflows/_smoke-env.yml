@@ -106,7 +106,7 @@ jobs:
             body="$(curl -sS --max-time 5 -H "Host: ${ANALYTICS_HOST}" "${INGRESS_ENDPOINT}/stats/'"$code"'")"
             echo "$body" | jq .
             cnt="$(echo "$body" | jq -r .count)"
-            [[ "$cnt" -ge 1 ]]fix/smoke-json-guard
+            [[ "$cnt" -ge 1 ]]
           '
 
           echo "✅ Smoke test passed for env=${{ inputs.env }}"
