@@ -7,10 +7,10 @@ images:
     tag: sha-01e0766
 ingress:
   hosts:
-    api: api.dev.url-platform.local
-    redirect: r.dev.url-platform.local
-    analytics: analytics.dev.url-platform.local
+    api: api.dev.galhalevi.dev
+    redirect: r.dev.galhalevi.dev
+    analytics: analytics.dev.galhalevi.dev
 urlService:
-  baseUrl: http://r.dev.url-platform.local
+  baseUrl: http://r.dev.galhalevi.dev
 global:
   appEnv: dev
