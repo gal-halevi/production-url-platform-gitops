@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   smoke:
+    name: smoke-dev
     uses: ./.github/workflows/_smoke-env.yml
     with:
       env: dev

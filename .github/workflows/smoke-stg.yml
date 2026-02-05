@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   smoke:
+    name: smoke-stg
     uses: ./.github/workflows/_smoke-env.yml
     with:
       env: stg
