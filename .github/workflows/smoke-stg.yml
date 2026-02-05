@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: smoke-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   smoke:
     uses: ./.github/workflows/_smoke-env.yml
