@@ -1,0 +1,108 @@
+name: _smoke-env
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+    secrets:
+      URL_PLATFORM_INGRESS_ENDPOINT:
+        required: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yq (pinned)
+        run: |
+          set -euo pipefail
+          YQ_VERSION=v4.44.1
+          curl -sSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Read hosts + expected url-service version
+        id: read
+        run: |
+          set -euo pipefail
+          FILE="envs/${{ inputs.env }}/values.yaml"
+
+          API_HOST="$(yq -r '.ingress.hosts.api' "$FILE")"
+          REDIRECT_HOST="$(yq -r '.ingress.hosts.redirect' "$FILE")"
+          ANALYTICS_HOST="$(yq -r '.ingress.hosts.analytics' "$FILE")"
+          URL_TAG="$(yq -r '.images.urlService.tag' "$FILE")"
+
+          echo "api_host=$API_HOST" >> "$GITHUB_OUTPUT"
+          echo "redirect_host=$REDIRECT_HOST" >> "$GITHUB_OUTPUT"
+          echo "analytics_host=$ANALYTICS_HOST" >> "$GITHUB_OUTPUT"
+          echo "url_tag=$URL_TAG" >> "$GITHUB_OUTPUT"
+
+          echo "Env: ${{ inputs.env }}"
+          echo "API_HOST=$API_HOST"
+          echo "REDIRECT_HOST=$REDIRECT_HOST"
+          echo "ANALYTICS_HOST=$ANALYTICS_HOST"
+          echo "Expected url-service tag=$URL_TAG"
+
+      - name: Smoke test (wait for rollout + verify version + e2e)
+        env:
+          INGRESS_ENDPOINT: ${{ secrets.URL_PLATFORM_INGRESS_ENDPOINT }}
+          API_HOST: ${{ steps.read.outputs.api_host }}
+          REDIRECT_HOST: ${{ steps.read.outputs.redirect_host }}
+          ANALYTICS_HOST: ${{ steps.read.outputs.analytics_host }}
+          EXPECTED_URL_TAG: ${{ steps.read.outputs.url_tag }}
+        run: |
+          set -euo pipefail
+
+          # retry helper with a shared global deadline (so all checks fit in job timeout)
+          retry_until_deadline() {
+            local deadline_epoch="$1"; shift
+            local delay=10
+
+            until "$@"; do
+              if (( $(date +%s) >= deadline_epoch )); then
+                echo "Command failed before deadline: $*"
+                return 1
+              fi
+              sleep "$delay"
+            done
+          }
+
+          # Budget: ~15 minutes total for all retries (job timeout is 15m)
+          deadline=$(( $(date +%s) + 15*60 ))
+
+          echo "Waiting for url-service /health to return expected version..."
+          retry_until_deadline "$deadline" bash -lc '
+            body="$(curl -sS --max-time 5 -H "Host: ${API_HOST}" "${INGRESS_ENDPOINT}/health")"
+            echo "$body" | jq .
+            ver="$(echo "$body" | jq -r .version)"
+            [[ "$ver" == "${EXPECTED_URL_TAG}" ]]
+          '
+
+          echo "Create short URL..."
+          code="$(curl -sS --max-time 5 -H "Host: ${API_HOST}" \
+            -H "content-type: application/json" \
+            -X POST "${INGRESS_ENDPOINT}/urls" \
+            -d "{\"long_url\":\"https://example.com\"}" | jq -r .code)"
+
+          [[ -n "$code" && "$code" != "null" ]]
+
+          echo "Verify redirect..."
+          retry_until_deadline "$deadline" bash -lc '
+            loc="$(curl -sS -I --max-time 5 -H "Host: ${REDIRECT_HOST}" "${INGRESS_ENDPOINT}/r/'"$code"'" | awk -F": " "tolower(\$1)==\"location\"{print \$2}" | tr -d "\r")"
+            [[ "$loc" == "https://example.com" ]]
+          '
+
+          echo "Verify analytics increments..."
+          retry_until_deadline "$deadline" bash -lc '
+            body="$(curl -sS --max-time 5 -H "Host: ${ANALYTICS_HOST}" "${INGRESS_ENDPOINT}/stats/'"$code"'")"
+            echo "$body" | jq .
+            cnt="$(echo "$body" | jq -r .count)"
+            [[ "$cnt" -ge 1 ]]
+          '
+
+          echo "✅ Smoke test passed for env=${{ inputs.env }}"

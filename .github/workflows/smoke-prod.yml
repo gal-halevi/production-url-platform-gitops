@@ -1,0 +1,19 @@
+name: smoke-prod
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "envs/prod/values.yaml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    uses: ./.github/workflows/_smoke-env.yml
+    with:
+      env: prod
+    secrets:
+      URL_PLATFORM_INGRESS_ENDPOINT: ${{ secrets.URL_PLATFORM_INGRESS_ENDPOINT }}
