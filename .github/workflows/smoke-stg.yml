@@ -1,0 +1,23 @@
+name: smoke-stg
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "envs/stg/values.yaml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    uses: ./.github/workflows/_smoke-env.yml
+    with:
+      env: stg
+    secrets:
+      URL_PLATFORM_INGRESS_ENDPOINT: ${{ secrets.URL_PLATFORM_INGRESS_ENDPOINT }}
