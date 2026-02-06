@@ -11,9 +11,14 @@ replicaCount:
   analyticsService: 2
   postgres: 1
 ingress:
-  # we will handle ssl in a following PR
-  # annotations:
-  #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+  tls:
+    - secretName: url-platform-prod-tls
+      hosts:
+        - api.galhalevi.dev
+        - r.galhalevi.dev
+        - analytics.galhalevi.dev
   hosts:
     api: api.galhalevi.dev
     redirect: r.galhalevi.dev
