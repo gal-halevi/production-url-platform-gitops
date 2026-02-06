@@ -12,7 +12,7 @@ replicaCount:
   postgres: 1
 ingress:
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: letsencrypt-prod
   tls:
     - secretName: url-platform-prod-tls
       hosts:
