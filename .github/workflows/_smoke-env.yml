@@ -64,7 +64,7 @@ jobs:
           API_BASE="${SCHEME}://${API_HOST}"
           REDIRECT_BASE="${SCHEME}://${REDIRECT_HOST}"
           ANALYTICS_BASE="${SCHEME}://${ANALYTICS_HOST}"
-          TEST_URL="https://example.com"
+          TEST_URL="https://httpbin.org/status/200"
 
           # Retry helper
           retry_until_deadline() {
@@ -140,9 +140,13 @@ jobs:
               echo "❌ Redirect check failed"
               return 1
             fi
+
+            # Normalize both (in case destination URL redirects)
+            final_url="${final_url%/}"
+            local expected="${TEST_URL%/}"
             
-            if [[ "$final_url" != "${TEST_URL}" ]]; then
-              echo "Redirected to: ${final_url}, expected: ${TEST_URL}"
+            if [[ "$final_url" != "${expected}" ]]; then
+              echo "Redirected to: ${final_url}, expected: ${expected}"
               return 1
             fi
             
