@@ -6,9 +6,6 @@ on:
       env:
         required: true
         type: string
-    secrets:
-      URL_PLATFORM_INGRESS_ENDPOINT:
-        required: true
 
 jobs:
   smoke:
@@ -50,63 +47,148 @@ jobs:
 
       - name: Smoke test (wait for rollout + verify version + e2e)
         env:
-          INGRESS_ENDPOINT: ${{ secrets.URL_PLATFORM_INGRESS_ENDPOINT }}
           API_HOST: ${{ steps.read.outputs.api_host }}
           REDIRECT_HOST: ${{ steps.read.outputs.redirect_host }}
           ANALYTICS_HOST: ${{ steps.read.outputs.analytics_host }}
           EXPECTED_URL_TAG: ${{ steps.read.outputs.url_tag }}
+          ENV_NAME: ${{ inputs.env }}
         run: |
           set -euo pipefail
 
-          # retry helper with a shared global deadline (so all checks fit in job timeout)
+          # Use HTTPS only for prod (TLS requires hostname in URL)
+          SCHEME="http"
+          if [[ "${ENV_NAME}" == "prod" ]]; then
+            SCHEME="https"
+          fi
+
+          API_BASE="${SCHEME}://${API_HOST}"
+          REDIRECT_BASE="${SCHEME}://${REDIRECT_HOST}"
+          ANALYTICS_BASE="${SCHEME}://${ANALYTICS_HOST}"
+          TEST_URL="https://example.com"
+
+          # Retry helper
           retry_until_deadline() {
             local deadline_epoch="$1"; shift
             local delay=10
-
             until "$@"; do
               if (( $(date +%s) >= deadline_epoch )); then
-                echo "Command failed before deadline: $*"
+                echo "❌ Command failed before deadline: $*"
                 return 1
               fi
               sleep "$delay"
             done
           }
 
-          # Budget: ~17 minutes total for all retries (job timeout is 20m)
+          # Budget: ~17 minutes total (job timeout is 20m)
           deadline=$(( $(date +%s) + 17*60 ))
 
-          echo "Waiting for url-service /health to return expected version..."
-          retry_until_deadline "$deadline" bash -lc '
-            body="$(curl -sS --max-time 5 -H "Host: ${API_HOST}" "${INGRESS_ENDPOINT}/health")"
+          # Function: Check url-service health and version
+          check_url_service_health() {
+            local response
+            if ! response=$(curl -fsS --max-time 8 "${API_BASE}/health" 2>&1); then
+              echo "Curl failed: ${response}"
+              return 1
+            fi
 
-            # If it is not JSON yet, keep retrying (quietly)
-            echo "$body" | jq -e . >/dev/null 2>&1 || exit 1
+            # Validate JSON
+            if ! echo "$response" | jq -e . >/dev/null 2>&1; then
+              echo "Response is not valid JSON yet, retrying..."
+              return 1
+            fi
 
-            echo "$body" | jq .
-            ver="$(echo "$body" | jq -r .version)"
-            [[ "$ver" == "${EXPECTED_URL_TAG}" ]]
-          '
+            echo "$response" | jq .
+            
+            local version
+            version="$(echo "$response" | jq -r .version)"
+            echo "Found version: ${version}, expected: ${EXPECTED_URL_TAG}"
+            
+            if [[ "$version" != "${EXPECTED_URL_TAG}" ]]; then
+              echo "❌ Version mismatch!"
+              return 1
+            fi
+            
+            echo "✅ Health check passed with correct version"
+            return 0
+          }
 
-          echo "Create short URL..."
-          code="$(curl -sS --max-time 5 -H "Host: ${API_HOST}" \
+          echo "==> Waiting for url-service health check..."
+          retry_until_deadline "$deadline" check_url_service_health
+
+          # Create short URL
+          echo "==> Creating short URL..."
+          code=$(curl -fsS --max-time 8 \
             -H "content-type: application/json" \
-            -X POST "${INGRESS_ENDPOINT}/urls" \
-            -d "{\"long_url\":\"https://example.com\"}" | jq -r .code)"
+            -X POST "${API_BASE}/urls" \
+            -d "{\"long_url\":\"${TEST_URL}\"}" \
+            | jq -r .code)
 
-          [[ -n "$code" && "$code" != "null" ]]
+          if [[ -z "$code" || "$code" == "null" ]]; then
+            echo "❌ Failed to create short URL"
+            exit 1
+          fi
+          echo "Created short URL with code: ${code}"
 
-          echo "Verify redirect..."
-          retry_until_deadline "$deadline" bash -lc '
-            loc="$(curl -sS -I --max-time 5 -H "Host: ${REDIRECT_HOST}" "${INGRESS_ENDPOINT}/r/'"$code"'" | awk -F": " "tolower(\$1)==\"location\"{print \$2}" | tr -d "\r")"
-            [[ "$loc" == "https://example.com" ]]
-          '
+          # Function: Verify redirect
+          check_redirect() {
+            # Follow redirect and get final URL
+            local final_url
+            
+            final_url=$(curl -fsS --max-time 8 -w "%{url_effective}" \
+              -o /dev/null \
+              "${REDIRECT_BASE}/r/${code}")
+            
+            if [[ "$final_url" != "${TEST_URL}" ]]; then
+              echo "Redirected to: ${final_url}, expected: ${TEST_URL}"
+              return 1
+            fi
+            
+            echo "✅ Redirect working -> ${final_url}"
+            return 0
+          }
 
-          echo "Verify analytics increments..."
-          retry_until_deadline "$deadline" bash -lc '
-            body="$(curl -sS --max-time 5 -H "Host: ${ANALYTICS_HOST}" "${INGRESS_ENDPOINT}/stats/'"$code"'")"
-            echo "$body" | jq .
-            cnt="$(echo "$body" | jq -r .count)"
-            [[ "$cnt" -ge 1 ]]
-          '
+          echo "==> Verifying redirect..."
+          retry_until_deadline "$deadline" check_redirect
 
-          echo "✅ Smoke test passed for env=${{ inputs.env }}"
+          # Function: Verify analytics
+          check_analytics() {
+            local response
+            if ! response=$(curl -fsS --max-time 8 "${ANALYTICS_BASE}/stats/${code}" 2>&1); then
+              echo "Analytics check failed: ${response}"
+              return 1
+            fi
+
+            # Validate JSON
+            if ! echo "$response" | jq -e . >/dev/null 2>&1; then
+              echo "Analytics response is not valid JSON yet, retrying..."
+              return 1
+            fi
+
+            echo "$response" | jq .
+            
+            local count
+            count=$(echo "$response" | jq -r .count)
+
+            # Check if it's a valid integer
+            if ! [[ "$count" =~ ^[0-9]+$ ]]; then
+              echo "Invalid count value: '${count}' (not a number)"
+              return 1
+            fi
+            
+            if [[ "$count" -lt 1 ]]; then
+              echo "Analytics count is ${count}, expected >= 1"
+              return 1
+            fi
+            
+            echo "✅ Analytics tracking working (count: ${count})"
+            return 0
+          }
+
+          echo "==> Verifying analytics..."
+          retry_until_deadline "$deadline" check_analytics
+
+          echo ""
+          echo "🎉 All smoke tests passed for env=${ENV_NAME}"
+          echo "   - url-service version: ${EXPECTED_URL_TAG}"
+          echo "   - Short URL created: ${code}"
+          echo "   - Redirect verified"
+          echo "   - Analytics tracked"
