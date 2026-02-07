@@ -19,5 +19,3 @@ jobs:
     uses: ./.github/workflows/_smoke-env.yml
     with:
       env: prod
-    secrets:
-      URL_PLATFORM_INGRESS_ENDPOINT: ${{ secrets.URL_PLATFORM_INGRESS_ENDPOINT }}
