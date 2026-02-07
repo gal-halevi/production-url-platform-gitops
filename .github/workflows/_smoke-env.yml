@@ -130,12 +130,16 @@ jobs:
 
           # Function: Verify redirect
           check_redirect() {
-            # Follow redirect and get final URL
             local final_url
             
-            final_url=$(curl -fsS --max-time 8 -w "%{url_effective}" \
+            # Follow redirects and get final destination
+            if ! final_url=$(curl -fsSL --max-time 8 \
+              -w "%{url_effective}" \
               -o /dev/null \
-              "${REDIRECT_BASE}/r/${code}")
+              "${REDIRECT_BASE}/r/${code}" 2>&1); then
+              echo "❌ Redirect check failed"
+              return 1
+            fi
             
             if [[ "$final_url" != "${TEST_URL}" ]]; then
               echo "Redirected to: ${final_url}, expected: ${TEST_URL}"
