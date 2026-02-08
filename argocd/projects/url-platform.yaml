@@ -5,9 +5,12 @@ metadata:
   namespace: argocd
 spec:
   description: URL Platform GitOps project
+
   sourceRepos:
     - https://github.com/gal-halevi/production-url-platform
     - https://github.com/gal-halevi/production-url-platform-gitops
+    - https://prometheus-community.github.io/helm-charts
+
   destinations:
     - namespace: url-platform-dev
       server: https://kubernetes.default.svc
@@ -17,6 +20,9 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: url-platform-preview*
       server: https://kubernetes.default.svc
+    - namespace: monitoring
+      server: https://kubernetes.default.svc
+
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
