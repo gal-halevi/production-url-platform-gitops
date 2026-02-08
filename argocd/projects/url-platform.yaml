@@ -9,7 +9,6 @@ spec:
   sourceRepos:
     - https://github.com/gal-halevi/production-url-platform
     - https://github.com/gal-halevi/production-url-platform-gitops
-    - https://prometheus-community.github.io/helm-charts
 
   destinations:
     - namespace: url-platform-dev
@@ -19,8 +18,6 @@ spec:
     - namespace: url-platform-prod
       server: https://kubernetes.default.svc
     - namespace: url-platform-preview*
-      server: https://kubernetes.default.svc
-    - namespace: monitoring
       server: https://kubernetes.default.svc
 
   clusterResourceWhitelist:
