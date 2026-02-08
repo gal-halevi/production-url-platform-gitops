@@ -25,6 +25,10 @@ spec:
         # In managed Kubernetes (AKS), etcd / controller-manager / scheduler
         # are not exposed like in self-managed clusters and scraping them
         # creates noisy, failing targets and ArgoCD permission issues.
+        kubeProxy:
+          enabled: false
+        coreDns:
+          enabled: false
         kubeEtcd:
           enabled: false
         kubeControllerManager:

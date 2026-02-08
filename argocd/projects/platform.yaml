@@ -26,6 +26,8 @@ spec:
       kind: MutatingWebhookConfiguration
     - group: admissionregistration.k8s.io
       kind: ValidatingWebhookConfiguration
+    - group: ""
+      kind: Namespace
 
   # allow namespaced resources in the monitoring namespace
   namespaceResourceWhitelist:
