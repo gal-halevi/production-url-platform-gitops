@@ -4,7 +4,7 @@ metadata:
   name: monitoring
   namespace: argocd
 spec:
-  project: url-platform
+  project: platform
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -21,6 +21,16 @@ spec:
           enabled: true
         alertmanager:
           enabled: true
+        # Disable control-plane component monitoring.
+        # In managed Kubernetes (AKS), etcd / controller-manager / scheduler
+        # are not exposed like in self-managed clusters and scraping them
+        # creates noisy, failing targets and ArgoCD permission issues.
+        kubeEtcd:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
   syncPolicy:
     automated:
       prune: true

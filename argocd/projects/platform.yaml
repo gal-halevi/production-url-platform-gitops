@@ -1,0 +1,33 @@
+# argocd/projects/platform.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Cluster-wide platform add-ons (monitoring, ingress add-ons, etc.)
+  sourceRepos:
+    - https://prometheus-community.github.io/helm-charts
+    - https://github.com/gal-halevi/production-url-platform-gitops
+
+  destinations:
+    - namespace: monitoring
+      server: https://kubernetes.default.svc
+
+  # allow cluster-scoped resources required by kube-prometheus-stack
+  clusterResourceWhitelist:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+
+  # allow namespaced resources in the monitoring namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
