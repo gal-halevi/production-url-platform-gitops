@@ -17,3 +17,5 @@ global:
 monitoring:
   serviceMonitor:
     enabled: true
+    labels:
+      release: monitoring
