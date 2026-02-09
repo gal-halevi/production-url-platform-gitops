@@ -19,7 +19,6 @@ monitoring:
     enabled: true
     labels:
       release: monitoring
-      path: /metrics-bad
   prometheusRule:
     enabled: true
     labels:
