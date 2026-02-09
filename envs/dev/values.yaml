@@ -17,9 +17,9 @@ global:
 monitoring:
   serviceMonitor:
     enabled: true
+    path: /metrics-bad
     labels:
       release: monitoring
-      path: /metrics-bad
   prometheusRule:
     enabled: true
     labels:
