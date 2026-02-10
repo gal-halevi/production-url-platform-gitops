@@ -6,23 +6,39 @@
   "refresh": "10s",
   "tags": ["url-platform", "dev", "service"],
   "templating": {
-    "list": [
-      {
-        "name": "namespace",
-        "type": "constant",
-        "label": "Namespace",
-        "query": "url-platform-dev",
-        "current": { "text": "url-platform-dev", "value": "url-platform-dev" }
-      },
-      {
-        "name": "service",
-        "type": "constant",
-        "label": "Service",
-        "query": "url-service",
-        "current": { "text": "url-service", "value": "url-service" }
-      }
-    ]
-  },
+  "list": [
+    {
+      "name": "namespace",
+      "type": "query",
+      "label": "Namespace",
+      "datasource": "Prometheus",
+      "refresh": 1,
+      "query": "label_values(http_requests_total, namespace)",
+      "current": { "text": "url-platform-dev", "value": "url-platform-dev" }
+    },
+    {
+      "name": "service",
+      "type": "query",
+      "label": "Service",
+      "datasource": "Prometheus",
+      "refresh": 1,
+      "query": "label_values(http_requests_total{namespace=\"$namespace\"}, service)",
+      "current": { "text": "url-service", "value": "url-service" }
+    },
+    {
+      "name": "route",
+      "type": "query",
+      "label": "Route",
+      "datasource": "Prometheus",
+      "refresh": 1,
+      "includeAll": true,
+      "multi": true,
+      "allValue": ".*",
+      "query": "label_values(http_requests_total{namespace=\"$namespace\",service=\"$service\"}, route)",
+      "current": { "text": "All", "value": "$__all" }
+    }
+  ]
+},
   "panels": [
     {
       "type": "timeseries",
@@ -30,7 +46,18 @@
       "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
       "targets": [
         {
-          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$service\"}[5m]))",
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$service\",route=~\"$route\"}[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Top routes by RPS",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (route) (rate(http_requests_total{namespace=\"$namespace\",service=\"$service\"}[5m])))",
           "refId": "A"
         }
       ]
@@ -41,7 +68,7 @@
       "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
       "targets": [
         {
-          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$service\",status_code=~\"5..\"}[5m])) / sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$service\"}[5m])))",
+          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$service\",route=~\"$route\",status_code=~\"5..\"}[5m])) / sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$service\",route=~\"$route\"}[5m])))",
           "refId": "A"
         }
       ]
@@ -52,7 +79,7 @@
       "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"$service\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"$service\",route=~\"$route\"}[5m])))",
           "refId": "A"
         }
       ]
