@@ -40,6 +40,11 @@ spec:
       targetRevision: main
       path: monitoring/dashboards
       kustomize: {}
+
+    - repoURL: https://github.com/gal-halevi/production-url-platform-gitops
+      targetRevision: main
+      path: monitoring/rules/overlays/dev
+      kustomize: {}
   syncPolicy:
     automated:
       prune: true
