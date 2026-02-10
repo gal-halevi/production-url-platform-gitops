@@ -5,3 +5,14 @@ namespace: monitoring
 
 resources:
   - url-service-dashboard.cm.yaml
+
+configMapGenerator:
+  - name: grafana-dashboard-url-service
+    files:
+      - assets/url-service.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+
+generatorOptions:
+  disableNameSuffixHash: true
