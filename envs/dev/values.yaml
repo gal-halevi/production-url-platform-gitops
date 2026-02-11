@@ -19,7 +19,8 @@ monitoring:
     enabled: true
     labels:
       release: monitoring
-  prometheusRule:
-    enabled: true
-    labels:
-      release: monitoring
+  prometheusRules:
+    availability:
+      enabled: true
+    latencySLO:
+      enabled: true
