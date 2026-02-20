@@ -25,12 +25,3 @@ monitoring:
     latencySLO:
       enabled: true
       thresholdSeconds: "0.001"
-      # make long windows short we don't wait 1h/6h
-      fastShortWindow: 2m
-      fastLongWindow: 10m
-      slowShortWindow: 5m
-      slowLongWindow: 15m
-
-      # shorten the required "for" durations
-      fastBurnFor: 30s
-      slowBurnFor: 2m
