@@ -24,4 +24,3 @@ monitoring:
       enabled: true
     latencySLO:
       enabled: true
-      thresholdSeconds: "0.001"
