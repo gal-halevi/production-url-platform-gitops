@@ -4,9 +4,9 @@ kind: Kustomization
 namespace: monitoring
 
 configMapGenerator:
-  - name: grafana-dashboard-url-service
+  - name: grafana-dashboard-url-platform-all-services
     files:
-      - assets/url-service.json
+      - assets/url-platform-all-services.json
     options:
       labels:
         grafana_dashboard: "1"
