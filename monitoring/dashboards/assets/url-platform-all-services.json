@@ -1,0 +1,641 @@
+{
+  "uid": "url-platform-all-services",
+  "title": "URL Platform \u2014 All Services",
+  "tags": [
+    "url-platform"
+  ],
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(up{service=\"url-service\"}, namespace)",
+        "refresh": 2,
+        "sort": 1,
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Overview \u2014 All Services",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "RPS \u2014 All Services",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "url-service"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\"}[5m]))",
+          "refId": "B",
+          "legendFormat": "redirect-service"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))",
+          "refId": "C",
+          "legendFormat": "analytics-service"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "p95 Latency \u2014 All Services (s)",
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m])))",
+          "refId": "A",
+          "legendFormat": "url-service"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m])))",
+          "refId": "B",
+          "legendFormat": "redirect-service"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
+          "refId": "C",
+          "legendFormat": "analytics-service"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "5xx Error Rate \u2014 All Services (%)",
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\",status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\"}[5m])), 1e-9))",
+          "refId": "A",
+          "legendFormat": "url-service"
+        },
+        {
+          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\",status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\"}[5m])), 1e-9))",
+          "refId": "B",
+          "legendFormat": "redirect-service"
+        },
+        {
+          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m])), 1e-9))",
+          "refId": "C",
+          "legendFormat": "analytics-service"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Scrape Status \u2014 All Services",
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "max(up{namespace=\"$namespace\",service=\"url-service\"})",
+          "refId": "A",
+          "legendFormat": "url-service"
+        },
+        {
+          "expr": "max(up{namespace=\"$namespace\",service=\"redirect-service\"})",
+          "refId": "B",
+          "legendFormat": "redirect-service"
+        },
+        {
+          "expr": "max(up{namespace=\"$namespace\",service=\"analytics-service\"})",
+          "refId": "C",
+          "legendFormat": "analytics-service"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Url Service",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Url Service \u2014 RPS",
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\"}[5m]))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Url Service \u2014 p95 / p50 Latency (s)",
+      "gridPos": {
+        "x": 8,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m])))",
+          "refId": "A",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m])))",
+          "refId": "B",
+          "legendFormat": "p50"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Url Service \u2014 Status Codes (req/s)",
+      "gridPos": {
+        "x": 16,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\",status_code=~\"2..\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "2xx"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\",status_code=~\"4..\"}[5m]))",
+          "refId": "B",
+          "legendFormat": "4xx"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\",status_code=~\"5..\"}[5m]))",
+          "refId": "C",
+          "legendFormat": "5xx"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Url Service \u2014 5xx Error Rate (%)",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\",status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\"}[5m])), 1e-9))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Url Service \u2014 Top Routes by RPS",
+      "gridPos": {
+        "x": 8,
+        "y": 25,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (route) (rate(http_requests_total{namespace=\"$namespace\",service=\"url-service\"}[5m])))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Url Service \u2014 Top Slow Routes p95 (s)",
+      "gridPos": {
+        "x": 16,
+        "y": 25,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "topk(5, histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m]))))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Redirect Service",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Redirect Service \u2014 RPS",
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\"}[5m]))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redirect Service \u2014 p95 / p50 Latency (s)",
+      "gridPos": {
+        "x": 8,
+        "y": 33,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m])))",
+          "refId": "A",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m])))",
+          "refId": "B",
+          "legendFormat": "p50"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redirect Service \u2014 Status Codes (req/s)",
+      "gridPos": {
+        "x": 16,
+        "y": 33,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\",status_code=~\"2..\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "2xx"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\",status_code=~\"4..\"}[5m]))",
+          "refId": "B",
+          "legendFormat": "4xx"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\",status_code=~\"5..\"}[5m]))",
+          "refId": "C",
+          "legendFormat": "5xx"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redirect Service \u2014 5xx Error Rate (%)",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\",status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\"}[5m])), 1e-9))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redirect Service \u2014 Top Routes by RPS",
+      "gridPos": {
+        "x": 8,
+        "y": 40,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (route) (rate(http_requests_total{namespace=\"$namespace\",service=\"redirect-service\"}[5m])))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redirect Service \u2014 Top Slow Routes p95 (s)",
+      "gridPos": {
+        "x": 16,
+        "y": 40,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "topk(5, histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m]))))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Analytics Service",
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics Service \u2014 RPS",
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics Service \u2014 p95 / p50 Latency (s)",
+      "gridPos": {
+        "x": 8,
+        "y": 48,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
+          "refId": "A",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
+          "refId": "B",
+          "legendFormat": "p50"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics Service \u2014 Status Codes (req/s)",
+      "gridPos": {
+        "x": 16,
+        "y": 48,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"2..\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "2xx"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"4..\"}[5m]))",
+          "refId": "B",
+          "legendFormat": "4xx"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"5..\"}[5m]))",
+          "refId": "C",
+          "legendFormat": "5xx"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics Service \u2014 5xx Error Rate (%)",
+      "gridPos": {
+        "x": 0,
+        "y": 55,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m])), 1e-9))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics Service \u2014 Top Routes by RPS",
+      "gridPos": {
+        "x": 8,
+        "y": 55,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (route) (rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics Service \u2014 Top Slow Routes p95 (s)",
+      "gridPos": {
+        "x": 16,
+        "y": 55,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "topk(5, histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))))",
+          "refId": "A",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ]
+}
