@@ -604,9 +604,9 @@
       },
       "targets": [
         {
-          "expr": "topk(10, sum by (route) (rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
+          "expr": "topk(10, sum by (handler) (rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
           "refId": "A",
-          "legendFormat": "{{route}}"
+          "legendFormat": "{{handler}}"
         }
       ],
       "options": {
@@ -626,9 +626,9 @@
       },
       "targets": [
         {
-          "expr": "topk(5, histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))))",
+          "expr": "topk(5, histogram_quantile(0.95, sum by (le, handler) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))))",
           "refId": "A",
-          "legendFormat": "{{route}}"
+          "legendFormat": "{{handler}}"
         }
       ],
       "options": {
