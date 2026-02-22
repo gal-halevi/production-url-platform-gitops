@@ -1,10 +1,10 @@
 images:
   urlService:
-    tag: sha-fc76aed
+    tag: sha-1c18250
   redirectService:
-    tag: sha-01e0766
+    tag: sha-6b9af3a
   analyticsService:
-    tag: sha-01e0766
+    tag: sha-1c18250
 replicaCount:
   urlService: 2
   redirectService: 2
