@@ -19,3 +19,13 @@ urlService:
   baseUrl: http://r.stg.galhalevi.dev
 global:
   appEnv: stg
+monitoring:
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: monitoring
+  prometheusRules:
+    availability:
+      enabled: true
+    latencySLO:
+      enabled: true

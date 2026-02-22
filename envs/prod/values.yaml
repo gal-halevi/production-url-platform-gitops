@@ -30,3 +30,13 @@ urlService:
   baseUrl: http://r.galhalevi.dev
 global:
   appEnv: prod
+monitoring:
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: monitoring
+  prometheusRules:
+    availability:
+      enabled: true
+    latencySLO:
+      enabled: true
