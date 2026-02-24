@@ -1,10 +1,10 @@
 images:
   urlService:
-    tag: sha-8eefcfe
+    tag: sha-54d03e8
   redirectService:
-    tag: sha-cb47b20
+    tag: sha-54d03e8
   analyticsService:
-    tag: sha-3ec2b0a
+    tag: sha-54d03e8
 ingress:
   hosts:
     api: api.dev.galhalevi.dev
