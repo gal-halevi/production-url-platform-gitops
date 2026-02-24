@@ -2,9 +2,7 @@
 
 This repository contains the **GitOps configuration** for the `production-url-platform` project.
 
-It defines **what is deployed** to each environment and is consumed by **ArgoCD** running in the Kubernetes cluster.
-
-Application source code, CI pipelines, and image builds live in a separate repository.
+It defines **what is deployed** to each environment and is consumed by **ArgoCD** running in the Azure AKS cluster. Application source code, CI pipelines, image builds, and the Helm chart live in the [application repository](https://github.com/gal-halevi/production-url-platform).
 
 ---
 
@@ -17,119 +15,148 @@ Application source code, CI pipelines, and image builds live in a separate repos
 
 ---
 
-## Repositories Overview
+## Repositories overview
 
 | Repo | Responsibility |
-|----|----|
+|---|---|
 | `production-url-platform` | Application code, Helm chart, CI (build/test/publish images) |
-| `production-url-platform-gitops` | Environment configuration and ArgoCD applications |
+| `production-url-platform-gitops` | ArgoCD Applications, per-environment values, Grafana dashboards, smoke tests |
 
 ---
 
-## Repository Structure
+## Repository structure
 
 ```
 .
 ├── argocd/
 │   ├── projects/
-│   │   └── url-platform.yaml
+│   │   ├── platform.yaml         # ArgoCD AppProject for platform tooling
+│   │   └── url-platform.yaml     # ArgoCD AppProject for the URL platform
 │   └── applications/
-│       └── url-platform-dev.yaml
+│       ├── monitoring.yaml       # kube-prometheus-stack Application
+│       ├── url-platform-dev.yaml
+│       ├── url-platform-stg.yaml
+│       └── url-platform-prod.yaml
 │
 ├── envs/
-│   ├── dev/
-│   │   └── values.yaml
-│   ├── stg/
-│   │   └── values.yaml
-│   └── prod/
-│       └── values.yaml
+│   ├── dev/values.yaml           # Dev image tags + host names + feature flags
+│   ├── stg/values.yaml           # Stg image tags + host names + feature flags
+│   └── prod/values.yaml          # Prod image tags + host names + feature flags
 │
-└── README.md
+├── monitoring/
+│   └── dashboards/
+│       ├── kustomization.yaml
+│       └── assets/
+│           └── url-platform-all-services.json   # Grafana dashboard
+│
+└── .github/workflows/
+    ├── _smoke-env.yml            # Reusable smoke test workflow
+    ├── smoke-dev.yml
+    ├── smoke-stg.yml
+    └── smoke-prod.yml
 ```
 
 ---
 
 ## Environments
 
-- **dev**
-  - Automatically updated
-  - Used for fast feedback and validation
-- **stg**
-  - Promotion target from dev
-  - Used for pre-production validation
-- **prod**
-  - Will deploy only versioned releases (e.g. `vX.Y.Z`)
-  - Not active yet
+| Environment | Update method | Auto-sync |
+|---|---|---|
+| dev | Auto-updated by CI on every merge to `main` | Yes, with prune |
+| stg | PR-based promotion from dev (via `promote-stg` workflow) | Yes, with prune |
+| prod | PR-based promotion from stg (via `promote-prod` workflow) | Yes, with prune |
 
-Each environment is deployed into a dedicated Kubernetes namespace and uses its own values file.
+Each environment is deployed into a dedicated Kubernetes namespace and uses its own values file. ArgoCD uses multi-source Applications, combining the Helm chart from the application repo with the values file from this repo.
 
 ---
 
-## Image Versioning Strategy
+## Image versioning strategy
 
-- **Per-service image tags**
-- Each service can be promoted independently
-- Image tags are pinned explicitly in `envs/<env>/values.yaml`
+Each service has an independent image tag, allowing per-service independent promotion. All tags are immutable `sha-XXXXXXX` values (first 7 chars of the commit SHA). No mutable tags (e.g. `latest` or `main`) are used for deployments.
 
-Example:
 ```yaml
 images:
   urlService:
-    tag: sha-abcdef1
+    tag: sha-8eefcfe
   redirectService:
-    tag: sha-1234567
+    tag: sha-cb47b20
   analyticsService:
-    tag: sha-89abcd0
+    tag: sha-3ec2b0a
 ```
 
-No `:latest` or mutable tags are used for deployments.
+---
+
+## Promotion flow
+
+```
+merge to main
+    │
+    ▼
+CI builds & publishes images (GHCR)
+    │
+    ▼
+CI auto-updates envs/dev/values.yaml
+    │
+    ▼
+ArgoCD syncs dev (auto)
+    │
+    ▼
+smoke-dev.yml runs e2e verification
+    │
+    ▼ (manual: promote-stg workflow_dispatch)
+PR opens against envs/stg/values.yaml
+    │
+    ▼ (PR merged)
+ArgoCD syncs stg (auto)
+    │
+    ▼
+smoke-stg.yml runs e2e verification
+    │
+    ▼ (manual: promote-prod workflow_dispatch)
+PR opens against envs/prod/values.yaml
+    │
+    ▼ (PR merged)
+ArgoCD syncs prod (auto)
+    │
+    ▼
+smoke-prod.yml runs e2e verification
+```
 
 ---
 
-## ArgoCD Integration
+## Smoke tests
 
-- ArgoCD is installed and managed via Terraform in the infrastructure repository
-- This repo defines:
-  - `AppProject` for access control
-  - `Application` resources per environment
-- Helm charts are sourced from the application repo
-- Values files are sourced from this GitOps repo using ArgoCD multi-source support
+Each environment has a triggered smoke workflow (`smoke-<env>.yml`) that runs after ArgoCD syncs. The reusable `_smoke-env.yml` workflow:
 
-Initial sync is **manual**; auto-sync will be enabled after validation.
+1. Reads host names and expected image tags from the environment's values file
+2. Waits for url-service to report the correct deployed version at `/health`
+3. Creates a short URL via url-service
+4. Verifies the redirect resolves correctly via redirect-service
+5. Verifies the analytics event was recorded via analytics-service
 
----
-
-## Promotion Flow (Planned)
-
-1. CI builds and publishes images on `main`
-2. A PR updates `envs/dev/values.yaml` with new image tags
-3. Promotion to `stg` is done via PR copying tags from `dev`
-4. Production deployments will be triggered only by versioned releases
-
-All promotions are Git-based and reviewable.
+The version check ensures the smoke test only passes once the expected version is actually running, not on a stale deployment.
 
 ---
 
-## Out of Scope
+## ArgoCD integration
 
-- CI pipelines and image builds
-- Infrastructure provisioning
-- Secret management
-- ArgoCD Image Updater automation
+ArgoCD is installed and managed via Terraform in the application repository (`infra/aks/02-bootstrap`). This repo defines:
+
+- `AppProject` resources for access control and source restrictions
+- `Application` resources per environment, using multi-source to combine chart + values
+- Automated sync with self-healing and pruning enabled
+
+---
+
+## Out of scope
+
+- CI pipelines and image builds (live in the application repo)
+- Infrastructure provisioning (Terraform in the application repo)
+- Secret management (Kubernetes Secrets managed by Terraform)
 
 ---
 
 ## Notes
 
 - This repository intentionally contains **no secrets**
-- All values files should be safe to commit
-- Any sensitive configuration must be injected via Kubernetes Secrets managed elsewhere
-
----
-
-## Status
-
-- GitOps structure initialized
-- Dev environment wired to ArgoCD
-- Stg/prod placeholders present
-- Promotion automation to be added in follow-up work
+- All values files are safe to commit — sensitive configuration is injected via Kubernetes Secrets managed by Terraform
