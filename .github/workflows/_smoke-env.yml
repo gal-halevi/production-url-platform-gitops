@@ -23,7 +23,7 @@ jobs:
           chmod +x /usr/local/bin/yq
           yq --version
 
-      - name: Read hosts + expected url-service version
+      - name: Read hosts + expected service versions
         id: read
         run: |
           set -euo pipefail
@@ -33,17 +33,23 @@ jobs:
           REDIRECT_HOST="$(yq -r '.ingress.hosts.redirect' "$FILE")"
           ANALYTICS_HOST="$(yq -r '.ingress.hosts.analytics' "$FILE")"
           URL_TAG="$(yq -r '.images.urlService.tag' "$FILE")"
+          REDIRECT_TAG="$(yq -r '.images.redirectService.tag' "$FILE")"
+          ANALYTICS_TAG="$(yq -r '.images.analyticsService.tag' "$FILE")"
 
           echo "api_host=$API_HOST" >> "$GITHUB_OUTPUT"
           echo "redirect_host=$REDIRECT_HOST" >> "$GITHUB_OUTPUT"
           echo "analytics_host=$ANALYTICS_HOST" >> "$GITHUB_OUTPUT"
           echo "url_tag=$URL_TAG" >> "$GITHUB_OUTPUT"
+          echo "redirect_tag=$REDIRECT_TAG" >> "$GITHUB_OUTPUT"
+          echo "analytics_tag=$ANALYTICS_TAG" >> "$GITHUB_OUTPUT"
 
           echo "Env: ${{ inputs.env }}"
           echo "API_HOST=$API_HOST"
           echo "REDIRECT_HOST=$REDIRECT_HOST"
           echo "ANALYTICS_HOST=$ANALYTICS_HOST"
           echo "Expected url-service tag=$URL_TAG"
+          echo "Expected redirect-service tag=$REDIRECT_TAG"
+          echo "Expected analytics-service tag=$ANALYTICS_TAG"
 
       - name: Smoke test (wait for rollout + verify version + e2e)
         env:
@@ -51,6 +57,8 @@ jobs:
           REDIRECT_HOST: ${{ steps.read.outputs.redirect_host }}
           ANALYTICS_HOST: ${{ steps.read.outputs.analytics_host }}
           EXPECTED_URL_TAG: ${{ steps.read.outputs.url_tag }}
+          EXPECTED_REDIRECT_TAG: ${{ steps.read.outputs.redirect_tag }}
+          EXPECTED_ANALYTICS_TAG: ${{ steps.read.outputs.analytics_tag }}
           ENV_NAME: ${{ inputs.env }}
         run: |
           set -euo pipefail
@@ -82,37 +90,45 @@ jobs:
           # Budget: ~17 minutes total (job timeout is 20m)
           deadline=$(( $(date +%s) + 17*60 ))
 
-          # Function: Check url-service health and version
-          check_url_service_health() {
+          # Function: Check a service's health endpoint and verify deployed version.
+          # Args: $1 = service name (for logging), $2 = base URL, $3 = expected tag
+          check_service_health() {
+            local service="$1" base="$2" expected_tag="$3"
             local response
-            if ! response=$(curl -fsS --max-time 8 "${API_BASE}/health" 2>&1); then
+
+            if ! response=$(curl -fsS --max-time 8 "${base}/health" 2>&1); then
               echo "Curl failed: ${response}"
               return 1
             fi
 
-            # Validate JSON
             if ! echo "$response" | jq -e . >/dev/null 2>&1; then
               echo "Response is not valid JSON yet, retrying..."
               return 1
             fi
 
             echo "$response" | jq .
-            
+
             local version
             version="$(echo "$response" | jq -r .version)"
-            echo "Found version: ${version}, expected: ${EXPECTED_URL_TAG}"
-            
-            if [[ "$version" != "${EXPECTED_URL_TAG}" ]]; then
-              echo "❌ Version mismatch!"
+            echo "Found version: ${version}, expected: ${expected_tag}"
+
+            if [[ "$version" != "${expected_tag}" ]]; then
+              echo "❌ ${service} version mismatch!"
               return 1
             fi
-            
-            echo "✅ Health check passed with correct version"
+
+            echo "✅ ${service} health check passed with correct version"
             return 0
           }
 
           echo "==> Waiting for url-service health check..."
-          retry_until_deadline "$deadline" check_url_service_health
+          retry_until_deadline "$deadline" check_service_health "url-service" "$API_BASE" "$EXPECTED_URL_TAG"
+
+          echo "==> Waiting for redirect-service health check..."
+          retry_until_deadline "$deadline" check_service_health "redirect-service" "$REDIRECT_BASE" "$EXPECTED_REDIRECT_TAG"
+
+          echo "==> Waiting for analytics-service health check..."
+          retry_until_deadline "$deadline" check_service_health "analytics-service" "$ANALYTICS_BASE" "$EXPECTED_ANALYTICS_TAG"
 
           # Create short URL
           echo "==> Creating short URL..."
@@ -196,7 +212,9 @@ jobs:
 
           echo ""
           echo "🎉 All smoke tests passed for env=${ENV_NAME}"
-          echo "   - url-service version: ${EXPECTED_URL_TAG}"
+          echo "   - url-service version:       ${EXPECTED_URL_TAG}"
+          echo "   - redirect-service version:  ${EXPECTED_REDIRECT_TAG}"
+          echo "   - analytics-service version: ${EXPECTED_ANALYTICS_TAG}"
           echo "   - Short URL created: ${code}"
           echo "   - Redirect verified"
           echo "   - Analytics tracked"
