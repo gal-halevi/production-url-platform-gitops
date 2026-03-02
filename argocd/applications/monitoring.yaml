@@ -21,6 +21,16 @@ spec:
             enabled: true
           alertmanager:
             enabled: true
+          prometheusOperator:
+            # Disable admission webhooks — they cause an ArgoCD deadlock on fresh installs.
+            # The webhook job (admission-create) completes and is deleted by Helm before
+            # ArgoCD can observe its completion, leaving the sync stuck waiting forever.
+            # The operator functions correctly without them; you lose pre-creation validation
+            # of PrometheusRule/ServiceMonitor CRs, which is an acceptable GitOps tradeoff.
+            admissionWebhooks:
+              enabled: false
+            tls:
+              enabled: false
           # Disable control-plane component monitoring.
           # In managed Kubernetes (AKS), etcd / controller-manager / scheduler
           # are not exposed like in self-managed clusters and scraping them
