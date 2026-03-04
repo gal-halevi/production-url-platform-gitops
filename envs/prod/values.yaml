@@ -40,3 +40,6 @@ monitoring:
       enabled: true
     latencySLO:
       enabled: true
+backup:
+  enabled: true
+  storageAccount: "urlplatbackup"  # must match var.backup_storage_account_name in 00-network tfvars
