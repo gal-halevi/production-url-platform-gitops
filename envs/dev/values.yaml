@@ -4,7 +4,7 @@ images:
   redirectService:
     tag: sha-79333d2
   analyticsService:
-    tag: sha-79333d2
+    tag: sha-38d7c13
 ingress:
   hosts:
     api: api.dev.galhalevi.dev
