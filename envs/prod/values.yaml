@@ -5,10 +5,13 @@ images:
     tag: sha-79333d2
   analyticsService:
     tag: sha-79333d2
+  frontendService:
+    tag: main
 replicaCount:
   urlService: 3
   redirectService: 3
   analyticsService: 2
+  frontendService: 2
   postgres: 1
 ingress:
   annotations:
@@ -22,12 +25,16 @@ ingress:
         - api.galhalevi.dev
         - r.galhalevi.dev
         - analytics.galhalevi.dev
+        - app.galhalevi.dev
   hosts:
     api: api.galhalevi.dev
     redirect: r.galhalevi.dev
     analytics: analytics.galhalevi.dev
+    frontend: app.galhalevi.dev
 urlService:
   baseUrl: http://r.galhalevi.dev
+frontendService:
+  apiUrl: "https://api.galhalevi.dev"
 global:
   appEnv: prod
 monitoring:

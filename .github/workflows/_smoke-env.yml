@@ -32,33 +32,41 @@ jobs:
           API_HOST="$(yq -r '.ingress.hosts.api' "$FILE")"
           REDIRECT_HOST="$(yq -r '.ingress.hosts.redirect' "$FILE")"
           ANALYTICS_HOST="$(yq -r '.ingress.hosts.analytics' "$FILE")"
+          FRONTEND_HOST="$(yq -r '.ingress.hosts.frontend' "$FILE")"
           URL_TAG="$(yq -r '.images.urlService.tag' "$FILE")"
           REDIRECT_TAG="$(yq -r '.images.redirectService.tag' "$FILE")"
           ANALYTICS_TAG="$(yq -r '.images.analyticsService.tag' "$FILE")"
+          FRONTEND_TAG="$(yq -r '.images.frontendService.tag' "$FILE")"
 
           echo "api_host=$API_HOST" >> "$GITHUB_OUTPUT"
           echo "redirect_host=$REDIRECT_HOST" >> "$GITHUB_OUTPUT"
           echo "analytics_host=$ANALYTICS_HOST" >> "$GITHUB_OUTPUT"
+          echo "frontend_host=$FRONTEND_HOST" >> "$GITHUB_OUTPUT"
           echo "url_tag=$URL_TAG" >> "$GITHUB_OUTPUT"
           echo "redirect_tag=$REDIRECT_TAG" >> "$GITHUB_OUTPUT"
           echo "analytics_tag=$ANALYTICS_TAG" >> "$GITHUB_OUTPUT"
+          echo "frontend_tag=$FRONTEND_TAG" >> "$GITHUB_OUTPUT"
 
           echo "Env: ${{ inputs.env }}"
           echo "API_HOST=$API_HOST"
           echo "REDIRECT_HOST=$REDIRECT_HOST"
           echo "ANALYTICS_HOST=$ANALYTICS_HOST"
+          echo "FRONTEND_HOST=$FRONTEND_HOST"
           echo "Expected url-service tag=$URL_TAG"
           echo "Expected redirect-service tag=$REDIRECT_TAG"
           echo "Expected analytics-service tag=$ANALYTICS_TAG"
+          echo "Expected frontend-service tag=$FRONTEND_TAG"
 
       - name: Smoke test (wait for rollout + verify version + e2e)
         env:
           API_HOST: ${{ steps.read.outputs.api_host }}
           REDIRECT_HOST: ${{ steps.read.outputs.redirect_host }}
           ANALYTICS_HOST: ${{ steps.read.outputs.analytics_host }}
+          FRONTEND_HOST: ${{ steps.read.outputs.frontend_host }}
           EXPECTED_URL_TAG: ${{ steps.read.outputs.url_tag }}
           EXPECTED_REDIRECT_TAG: ${{ steps.read.outputs.redirect_tag }}
           EXPECTED_ANALYTICS_TAG: ${{ steps.read.outputs.analytics_tag }}
+          EXPECTED_FRONTEND_TAG: ${{ steps.read.outputs.frontend_tag }}
           ENV_NAME: ${{ inputs.env }}
         run: |
           set -euo pipefail
@@ -72,6 +80,7 @@ jobs:
           API_BASE="${SCHEME}://${API_HOST}"
           REDIRECT_BASE="${SCHEME}://${REDIRECT_HOST}"
           ANALYTICS_BASE="${SCHEME}://${ANALYTICS_HOST}"
+          FRONTEND_BASE="${SCHEME}://${FRONTEND_HOST}"
           TEST_URL="https://httpbin.org/status/200"
 
           # Retry helper
@@ -129,6 +138,9 @@ jobs:
 
           echo "==> Waiting for analytics-service health check..."
           retry_until_deadline "$deadline" check_service_health "analytics-service" "$ANALYTICS_BASE" "$EXPECTED_ANALYTICS_TAG"
+
+          echo "==> Waiting for frontend-service health check..."
+          retry_until_deadline "$deadline" check_service_health "frontend-service" "$FRONTEND_BASE" "$EXPECTED_FRONTEND_TAG"
 
           # Create short URL
           echo "==> Creating short URL..."
@@ -215,6 +227,7 @@ jobs:
           echo "   - url-service version:       ${EXPECTED_URL_TAG}"
           echo "   - redirect-service version:  ${EXPECTED_REDIRECT_TAG}"
           echo "   - analytics-service version: ${EXPECTED_ANALYTICS_TAG}"
+          echo "   - frontend-service version:  ${EXPECTED_FRONTEND_TAG}"
           echo "   - Short URL created: ${code}"
           echo "   - Redirect verified"
           echo "   - Analytics tracked"
