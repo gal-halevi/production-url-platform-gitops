@@ -4,9 +4,9 @@ images:
   redirectService:
     tag: sha-79333d2
   analyticsService:
-    tag: sha-79333d2
+    tag: sha-38d7c13
   frontendService:
-    tag: main
+    tag: sha-a390c2e
 replicaCount:
   urlService: 3
   redirectService: 3
@@ -49,4 +49,4 @@ monitoring:
       enabled: true
 backup:
   enabled: true
-  storageAccount: "urlplatbackup"  # must match var.backup_storage_account_name in 00-network tfvars
+  storageAccount: "urlplatbackup" # must match var.backup_storage_account_name in 00-network tfvars
