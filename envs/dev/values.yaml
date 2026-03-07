@@ -12,8 +12,11 @@ ingress:
     api: api.dev.galhalevi.dev
     redirect: r.dev.galhalevi.dev
     analytics: analytics.dev.galhalevi.dev
+    frontend: app.dev.galhalevi.dev
 urlService:
   baseUrl: http://r.dev.galhalevi.dev
+frontendService:
+  apiUrl: "https://api.dev.galhalevi.dev"
 global:
   appEnv: dev
 monitoring:

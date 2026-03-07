@@ -11,14 +11,18 @@ replicaCount:
   urlService: 2
   redirectService: 2
   analyticsService: 1
+  frontendService: 1
   postgres: 1
 ingress:
   hosts:
     api: api.stg.galhalevi.dev
     redirect: r.stg.galhalevi.dev
     analytics: analytics.stg.galhalevi.dev
+    frontend: app.stg.galhalevi.dev
 urlService:
   baseUrl: http://r.stg.galhalevi.dev
+frontendService:
+  apiUrl: "https://api.stg.galhalevi.dev"
 global:
   appEnv: stg
 monitoring:
