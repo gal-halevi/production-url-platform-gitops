@@ -5,6 +5,8 @@ images:
     tag: sha-79333d2
   analyticsService:
     tag: sha-38d7c13
+  frontendService:
+    tag: sha-a390c2e
 ingress:
   hosts:
     api: api.dev.galhalevi.dev
