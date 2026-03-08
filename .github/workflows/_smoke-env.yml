@@ -71,11 +71,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Use HTTPS only for prod (TLS requires hostname in URL)
-          SCHEME="http"
-          if [[ "${ENV_NAME}" == "prod" ]]; then
-            SCHEME="https"
-          fi
+          SCHEME="https"
 
           API_BASE="${SCHEME}://${API_HOST}"
           REDIRECT_BASE="${SCHEME}://${REDIRECT_HOST}"
