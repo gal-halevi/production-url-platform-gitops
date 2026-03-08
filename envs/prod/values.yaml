@@ -32,12 +32,13 @@ ingress:
     analytics: analytics.galhalevi.dev
     frontend: app.galhalevi.dev
 urlService:
-  baseUrl: http://r.galhalevi.dev
-  corsOrigins: https://app.galhalevi.dev
+  baseUrl: "http://r.galhalevi.dev"
+  corsOrigins: "https://app.galhalevi.dev"
 analyticsService:
-  corsOrigins: https://app.galhalevi.dev
+  corsOrigins: "https://app.galhalevi.dev"
 frontendService:
-  apiUrl: https://api.galhalevi.dev
+  analyticsUrl: "https://analytics.galhalevi.dev"
+  apiUrl: "https://api.galhalevi.dev"
 global:
   appEnv: prod
 monitoring:
