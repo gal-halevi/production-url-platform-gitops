@@ -32,7 +32,7 @@ ingress:
     analytics: analytics.galhalevi.dev
     frontend: app.galhalevi.dev
 urlService:
-  baseUrl: "http://r.galhalevi.dev"
+  baseUrl: "https://r.galhalevi.dev"
   corsOrigins: "https://app.galhalevi.dev"
 analyticsService:
   corsOrigins: "https://app.galhalevi.dev"
