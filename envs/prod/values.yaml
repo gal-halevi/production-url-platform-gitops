@@ -34,7 +34,7 @@ ingress:
 urlService:
   baseUrl: http://r.galhalevi.dev
 frontendService:
-  apiUrl: "https://api.galhalevi.dev"
+  apiUrl: https://api.galhalevi.dev
 global:
   appEnv: prod
 monitoring:
