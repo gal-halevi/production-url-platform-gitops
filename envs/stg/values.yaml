@@ -22,7 +22,7 @@ ingress:
 urlService:
   baseUrl: http://r.stg.galhalevi.dev
 frontendService:
-  apiUrl: "https://api.stg.galhalevi.dev"
+  apiUrl: http://api.stg.galhalevi.dev
 global:
   appEnv: stg
 monitoring:
