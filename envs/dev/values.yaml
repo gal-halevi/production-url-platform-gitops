@@ -15,6 +15,9 @@ ingress:
     frontend: app.dev.galhalevi.dev
 urlService:
   baseUrl: http://r.dev.galhalevi.dev
+  corsOrigins: http://app.dev.galhalevi.dev
+analyticsService:
+  corsOrigins: http://app.dev.galhalevi.dev
 frontendService:
   apiUrl: http://api.dev.galhalevi.dev
 global:

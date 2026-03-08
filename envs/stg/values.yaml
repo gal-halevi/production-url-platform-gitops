@@ -21,6 +21,9 @@ ingress:
     frontend: app.stg.galhalevi.dev
 urlService:
   baseUrl: http://r.stg.galhalevi.dev
+  corsOrigins: http://app.stg.galhalevi.dev
+analyticsService:
+  corsOrigins: http://app.stg.galhalevi.dev
 frontendService:
   apiUrl: http://api.stg.galhalevi.dev
 global:
