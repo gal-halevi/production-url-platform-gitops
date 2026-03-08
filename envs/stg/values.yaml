@@ -20,12 +20,13 @@ ingress:
     analytics: analytics.stg.galhalevi.dev
     frontend: app.stg.galhalevi.dev
 urlService:
-  baseUrl: http://r.stg.galhalevi.dev
-  corsOrigins: http://app.stg.galhalevi.dev
+  baseUrl: "http://r.stg.galhalevi.dev"
+  corsOrigins: "http://app.stg.galhalevi.dev"
 analyticsService:
-  corsOrigins: http://app.stg.galhalevi.dev
+  corsOrigins: "http://app.stg.galhalevi.dev"
 frontendService:
-  apiUrl: http://api.stg.galhalevi.dev
+  analyticsUrl: "http://analytics.stg.galhalevi.dev"
+  apiUrl: "http://api.stg.galhalevi.dev"
 global:
   appEnv: stg
 monitoring:

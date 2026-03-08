@@ -15,11 +15,12 @@ ingress:
     frontend: app.dev.galhalevi.dev
 urlService:
   baseUrl: http://r.dev.galhalevi.dev
-  corsOrigins: http://app.dev.galhalevi.dev
+  corsOrigins: "http://app.dev.galhalevi.dev"
 analyticsService:
-  corsOrigins: http://app.dev.galhalevi.dev
+  corsOrigins: "http://app.dev.galhalevi.dev"
 frontendService:
-  apiUrl: http://api.dev.galhalevi.dev
+  analyticsUrl: "http://analytics.dev.galhalevi.dev"
+  apiUrl: "http://api.dev.galhalevi.dev"
 global:
   appEnv: dev
 monitoring:
