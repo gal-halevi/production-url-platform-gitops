@@ -8,19 +8,29 @@ images:
   frontendService:
     tag: sha-a390c2e
 ingress:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  tls:
+    - secretName: url-platform-dev-tls
+      hosts:
+        - api.dev.galhalevi.dev
+        - r.dev.galhalevi.dev
+        - analytics.dev.galhalevi.dev
+        - app.dev.galhalevi.dev
   hosts:
     api: api.dev.galhalevi.dev
     redirect: r.dev.galhalevi.dev
     analytics: analytics.dev.galhalevi.dev
     frontend: app.dev.galhalevi.dev
 urlService:
-  baseUrl: http://r.dev.galhalevi.dev
-  corsOrigins: "http://app.dev.galhalevi.dev"
+  baseUrl: https://r.dev.galhalevi.dev
+  corsOrigins: "https://app.dev.galhalevi.dev"
 analyticsService:
-  corsOrigins: "http://app.dev.galhalevi.dev"
+  corsOrigins: "https://app.dev.galhalevi.dev"
 frontendService:
-  analyticsUrl: "http://analytics.dev.galhalevi.dev"
-  apiUrl: "http://api.dev.galhalevi.dev"
+  analyticsUrl: "https://analytics.dev.galhalevi.dev"
+  apiUrl: "https://api.dev.galhalevi.dev"
 global:
   appEnv: dev
 monitoring:

@@ -14,19 +14,29 @@ replicaCount:
   frontendService: 1
   postgres: 1
 ingress:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  tls:
+    - secretName: url-platform-stg-tls
+      hosts:
+        - api.stg.galhalevi.dev
+        - r.stg.galhalevi.dev
+        - analytics.stg.galhalevi.dev
+        - app.stg.galhalevi.dev
   hosts:
     api: api.stg.galhalevi.dev
     redirect: r.stg.galhalevi.dev
     analytics: analytics.stg.galhalevi.dev
     frontend: app.stg.galhalevi.dev
 urlService:
-  baseUrl: "http://r.stg.galhalevi.dev"
-  corsOrigins: "http://app.stg.galhalevi.dev"
+  baseUrl: "https://r.stg.galhalevi.dev"
+  corsOrigins: "https://app.stg.galhalevi.dev"
 analyticsService:
-  corsOrigins: "http://app.stg.galhalevi.dev"
+  corsOrigins: "https://app.stg.galhalevi.dev"
 frontendService:
-  analyticsUrl: "http://analytics.stg.galhalevi.dev"
-  apiUrl: "http://api.stg.galhalevi.dev"
+  analyticsUrl: "https://analytics.stg.galhalevi.dev"
+  apiUrl: "https://api.stg.galhalevi.dev"
 global:
   appEnv: stg
 monitoring:
