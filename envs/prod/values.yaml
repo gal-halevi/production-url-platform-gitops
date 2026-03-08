@@ -6,7 +6,7 @@ images:
   analyticsService:
     tag: sha-f3476f2
   frontendService:
-    tag: sha-a390c2e
+    tag: sha-af7837d
 replicaCount:
   urlService: 3
   redirectService: 3
