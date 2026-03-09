@@ -6,7 +6,7 @@ images:
   analyticsService:
     tag: sha-750966e
   frontendService:
-    tag: sha-8409d0d
+    tag: sha-e9f9c49
 ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
