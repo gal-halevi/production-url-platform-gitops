@@ -1,12 +1,12 @@
 images:
   urlService:
-    tag: sha-f3476f2
+    tag: sha-ae74809
   redirectService:
-    tag: sha-79333d2
+    tag: sha-ae74809
   analyticsService:
-    tag: sha-f3476f2
+    tag: sha-ae74809
   frontendService:
-    tag: sha-af7837d
+    tag: sha-e9f9c49
 replicaCount:
   urlService: 3
   redirectService: 3
