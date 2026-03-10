@@ -51,6 +51,12 @@ spec:
       path: monitoring/dashboards
       kustomize: {}
 
+    - repoURL: https://github.com/gal-halevi/production-url-platform-gitops
+      targetRevision: main
+      path: monitoring
+      directory:
+        include: "loki-datasource.yaml"
+
   syncPolicy:
     automated:
       prune: true

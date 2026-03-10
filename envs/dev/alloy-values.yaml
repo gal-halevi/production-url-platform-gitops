@@ -1,0 +1,114 @@
+# Grafana Alloy — log collector, replacing deprecated Promtail.
+# Runs as a DaemonSet (one pod per node), discovers pods via the k8s API,
+# and ships structured logs to Loki.
+
+alloy:
+  # Alloy uses its own HCL-like configuration language.
+  # The pipeline: discover pods → relabel → collect logs → write to Loki.
+  configMap:
+    content: |-
+      // ── Write target ──────────────────────────────────────────────────────
+      // All log pipeline components forward_to this writer.
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
+
+      // ── Discovery ─────────────────────────────────────────────────────────
+      // Discover pods in the url-platform-dev namespace only.
+      // Scoping to our namespace avoids ingesting kube-system, argocd, and
+      // other platform noise we have no interest in querying.
+      discovery.kubernetes "pods" {
+        role = "pod"
+        namespaces {
+          names = ["url-platform-dev"]
+        }
+      }
+
+      // ── Relabeling ────────────────────────────────────────────────────────
+      // Attach Kubernetes metadata as Loki stream labels and build the log
+      // target path. Only Running pods are kept.
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        // Drop pods that are not Running.
+        rule {
+          source_labels = ["__meta_kubernetes_pod_phase"]
+          action        = "keep"
+          regex         = "Running"
+        }
+
+        // Attach namespace as a label — used in cross-service LogQL queries:
+        //   {namespace="url-platform-dev"} | json | request_id="abc-123"
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        // Attach pod name and container for debugging.
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+      }
+
+      // ── Log collection ────────────────────────────────────────────────────
+      // loki.source.kubernetes reads logs via the k8s API (no host volume
+      // mount required). Cleaner than file tailing and works on any CNI.
+      loki.source.kubernetes "pod_logs" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.process.parse_and_label.receiver]
+      }
+
+      // ── Processing pipeline ───────────────────────────────────────────────
+      // Parse the JSON log line and promote service + level as indexed Loki
+      // labels. Everything else (request_id, method, path, ms) stays in the
+      // log line and is filtered at query time with | json.
+      loki.process "parse_and_label" {
+        forward_to = [loki.write.default.receiver]
+
+        // Parse JSON to make log fields available for stage processing.
+        stage.json {
+          expressions = {
+            level   = "level",
+            service = "service",
+          }
+        }
+
+        // Promote service and level as indexed labels.
+        // Keeping label count low is critical — Loki indexes label
+        // combinations, so high-cardinality labels degrade performance.
+        stage.labels {
+          values = {
+            level   = "",
+            service = "",
+          }
+        }
+
+        // Drop health/readiness/metrics probe logs — they fire every few
+        // seconds per pod and would dominate log volume without value.
+        stage.drop {
+          expression = ".*\"path\":\"/health\".*"
+        }
+        stage.drop {
+          expression = ".*\"path\":\"/ready\".*"
+        }
+        stage.drop {
+          expression = ".*\"path\":\"/metrics\".*"
+        }
+      }
+
+  # loki.source.kubernetes reads logs via the k8s API so no host mount is
+  # strictly required. varlog is kept false to avoid the unnecessary
+  # privileged volume on the DaemonSet pod spec.
+  mounts:
+    varlog: false
+
+# Deploy as a DaemonSet so every node's pods are covered.
+controller:
+  type: daemonset
