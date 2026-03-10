@@ -49,6 +49,11 @@ grafana-agent-operator:
   enabled: false
 lokiCanary:
   enabled: false
+
+# Chart validates that canary is enabled when tests are enabled.
+# Tests are a helm test hook — not meaningful in a GitOps/ArgoCD deployment.
+test:
+  enabled: false
 chunksCache:
   enabled: false
 resultsCache:
