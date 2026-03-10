@@ -8,6 +8,7 @@ spec:
   description: Cluster-wide platform add-ons (monitoring, ingress add-ons, etc.)
   sourceRepos:
     - https://prometheus-community.github.io/helm-charts
+    - https://grafana.github.io/helm-charts
     - https://github.com/gal-halevi/production-url-platform-gitops
 
   destinations:
