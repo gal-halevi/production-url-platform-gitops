@@ -92,14 +92,20 @@ alloy:
 
         // Drop health/readiness/metrics probe logs — they fire every few
         // seconds per pod and would dominate log volume without value.
+        // Drop probe logs by matching the extracted path field directly.
+        // Using source/value is more robust than regex on the raw line — immune
+        // to JSON serializer whitespace differences across services.
         stage.drop {
-          expression = ".*\"path\":\"/health\".*"
+          source = "path"
+          value  = "/health"
         }
         stage.drop {
-          expression = ".*\"path\":\"/ready\".*"
+          source = "path"
+          value  = "/ready"
         }
         stage.drop {
-          expression = ".*\"path\":\"/metrics\".*"
+          source = "path"
+          value  = "/metrics"
         }
       }
 
