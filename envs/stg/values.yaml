@@ -4,7 +4,7 @@ images:
   redirectService:
     tag: sha-ae74809
   analyticsService:
-    tag: sha-ae74809
+    tag: sha-558ac00
   frontendService:
     tag: sha-e9f9c49
 replicaCount:
