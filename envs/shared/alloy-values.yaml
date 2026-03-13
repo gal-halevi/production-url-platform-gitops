@@ -16,13 +16,14 @@ alloy:
       }
 
       // ── Discovery ─────────────────────────────────────────────────────────
-      // Discover pods in the url-platform-dev namespace only.
-      // Scoping to our namespace avoids ingesting kube-system, argocd, and
+      // Discover pods across all url-platform namespaces.
+      // Scoping to our namespaces avoids ingesting kube-system, argocd, and
       // other platform noise we have no interest in querying.
+      // The namespace label on each log line discriminates between envs.
       discovery.kubernetes "pods" {
         role = "pod"
         namespaces {
-          names = ["url-platform-dev"]
+          names = ["url-platform-dev", "url-platform-stg", "url-platform-prod"]
         }
       }
 
