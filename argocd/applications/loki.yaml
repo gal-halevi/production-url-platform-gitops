@@ -15,7 +15,7 @@ spec:
       helm:
         releaseName: loki
         valueFiles:
-          - $values/envs/dev/loki-values.yaml
+          - $values/envs/shared/loki-values.yaml
     - repoURL: https://github.com/gal-halevi/production-url-platform-gitops
       targetRevision: main
       ref: values

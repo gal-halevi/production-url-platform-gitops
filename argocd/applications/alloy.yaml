@@ -15,7 +15,7 @@ spec:
       helm:
         releaseName: alloy
         valueFiles:
-          - $values/envs/dev/alloy-values.yaml
+          - $values/envs/shared/alloy-values.yaml
     - repoURL: https://github.com/gal-halevi/production-url-platform-gitops
       targetRevision: main
       ref: values
