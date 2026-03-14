@@ -1,6 +1,6 @@
 images:
   urlService:
-    tag: sha-ae74809
+    tag: sha-0ebb101
   redirectService:
     tag: sha-ae74809
   analyticsService:
