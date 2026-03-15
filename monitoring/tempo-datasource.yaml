@@ -1,0 +1,55 @@
+# Grafana datasource for Tempo.
+# The kube-prometheus-stack Grafana sidecar watches for ConfigMaps with
+# label grafana_datasource: "1" in the monitoring namespace and hot-reloads
+# them into Grafana — no restart or manual UI configuration required.
+#
+# Trace-to-logs correlation: clicking a span in Grafana jumps directly to
+# the Loki logs for that service and time window, using request_id as the
+# correlation field.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-datasource
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  tempo-datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo.monitoring.svc.cluster.local:3100
+        uid: tempo
+        isDefault: false
+        version: 1
+        editable: false
+        jsonData:
+          httpMethod: GET
+          # Trace-to-logs: clicking a trace in Tempo opens the correlated
+          # Loki logs for the same service and time window.
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: -1m
+            spanEndTimeShift: 1m
+            filterByTraceID: false
+            filterBySpanID: false
+            customQuery: true
+            query: '{namespace="${__tags.namespace}", service="${__tags.service.name}"} | json | request_id="${__trace.traceId}"'
+          # Trace-to-metrics: clicking a trace opens the correlated Prometheus
+          # metrics for the same service.
+          tracesToMetrics:
+            datasourceUid: prometheus
+            spanStartTimeShift: -1m
+            spanEndTimeShift: 1m
+            queries:
+              - name: Request rate
+                query: 'sum(rate(http_requests_total{namespace="$${__tags.namespace}",service="$${__tags.service.name}"}[5m]))'
+          # Enable TraceQL search in Grafana Explore.
+          lokiSearch:
+            datasourceUid: loki
+          serviceMap:
+            datasourceUid: prometheus
+          nodeGraph:
+            enabled: true
