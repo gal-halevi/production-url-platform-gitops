@@ -1,0 +1,65 @@
+# OpenTelemetry Collector — deployment mode (single replica).
+# Receives OTLP traces from all three services and forwards to Tempo.
+# Deployment (not DaemonSet) is appropriate here — we're not collecting
+# node-level data, just receiving pushes from instrumented services.
+
+mode: deployment
+
+# Use the contrib image which includes all receivers/processors/exporters.
+# k8s image is a trimmed-down variant — contrib ensures we have everything
+# needed for future additions (metrics, logs pipelines etc.)
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: ""  # defaults to chart appVersion
+
+# Single replica — trace volume at this scale doesn't warrant more.
+replicaCount: 1
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  processors:
+    # Batch traces before sending to Tempo — reduces number of requests
+    # and improves throughput. 5s timeout balances latency vs efficiency.
+    batch:
+      timeout: 5s
+      send_batch_size: 256
+
+    # Cap memory usage to avoid OOM — collector should never take down
+    # the node over a trace spike.
+    memory_limiter:
+      check_interval: 1s
+      limit_percentage: 75
+      spike_limit_percentage: 20
+
+  exporters:
+    # Forward traces to Tempo via OTLP gRPC.
+    otlp/tempo:
+      endpoint: tempo.monitoring.svc.cluster.local:4317
+      tls:
+        insecure: true  # internal cluster traffic, TLS not needed
+
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [otlp/tempo]
+      # Disable default metrics and logs pipelines — we use Prometheus
+      # and Loki/Alloy for those respectively.
+      metrics: null
+      logs: null
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
