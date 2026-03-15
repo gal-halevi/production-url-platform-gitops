@@ -2,7 +2,7 @@ images:
   urlService:
     tag: sha-0ebb101
   redirectService:
-    tag: sha-ae74809
+    tag: sha-1d83b3b
   analyticsService:
     tag: sha-558ac00
   frontendService:
