@@ -28,7 +28,6 @@ spec:
                     uid: prometheus
                     access: proxy
                     url: http://monitoring-prometheus.monitoring.svc.cluster.local:9090
-                    isDefault: true
                     jsonData:
                       timeInterval: 30s
                       exemplarTraceIdDestinations:
