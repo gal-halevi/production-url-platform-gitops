@@ -17,6 +17,23 @@ spec:
         valuesObject:
           grafana:
             enabled: true
+            # Override the built-in Prometheus datasource to add exemplarTraceIdDestinations.
+            # This tells Grafana to link exemplar dots on latency panels to Tempo traces.
+            datasources:
+              datasources.yaml:
+                apiVersion: 1
+                datasources:
+                  - name: Prometheus
+                    type: prometheus
+                    uid: prometheus
+                    access: proxy
+                    url: http://monitoring-prometheus.monitoring.svc.cluster.local:9090
+                    isDefault: true
+                    jsonData:
+                      timeInterval: 30s
+                      exemplarTraceIdDestinations:
+                        - name: trace_id
+                          datasourceUid: tempo
           prometheus:
             enabled: true
           alertmanager:
