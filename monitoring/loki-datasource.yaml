@@ -28,4 +28,8 @@ data:
           derivedFields:
             - name: request_id
               matcherRegex: '"request_id":"([^"]+)"'
-              url: ""
+              # Link log lines to Tempo traces via request_id.
+              # Clicking the request_id value in a log line opens the
+              # corresponding trace in Grafana Explore.
+              datasourceUid: tempo
+              url: "$${__value.raw}"
