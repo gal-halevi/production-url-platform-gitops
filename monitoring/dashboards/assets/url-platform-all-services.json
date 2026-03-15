@@ -80,17 +80,20 @@
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m])))",
           "refId": "A",
-          "legendFormat": "url-service"
+          "legendFormat": "url-service",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m])))",
           "refId": "B",
-          "legendFormat": "redirect-service"
+          "legendFormat": "redirect-service",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
           "refId": "C",
-          "legendFormat": "analytics-service"
+          "legendFormat": "analytics-service",
+          "exemplar": true
         }
       ],
       "options": {
@@ -275,12 +278,14 @@
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m])))",
           "refId": "A",
-          "legendFormat": "p95"
+          "legendFormat": "p95",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m])))",
           "refId": "B",
-          "legendFormat": "p50"
+          "legendFormat": "p50",
+          "exemplar": true
         }
       ],
       "options": {
@@ -378,7 +383,8 @@
         {
           "expr": "topk(5, histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"url-service\"}[5m]))))",
           "refId": "A",
-          "legendFormat": "{{route}}"
+          "legendFormat": "{{route}}",
+          "exemplar": true
         }
       ],
       "options": {
@@ -539,12 +545,14 @@
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m])))",
           "refId": "A",
-          "legendFormat": "p95"
+          "legendFormat": "p95",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m])))",
           "refId": "B",
-          "legendFormat": "p50"
+          "legendFormat": "p50",
+          "exemplar": true
         }
       ],
       "options": {
@@ -642,7 +650,8 @@
         {
           "expr": "topk(5, histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"redirect-service\"}[5m]))))",
           "refId": "A",
-          "legendFormat": "{{route}}"
+          "legendFormat": "{{route}}",
+          "exemplar": true
         }
       ],
       "options": {
@@ -803,12 +812,14 @@
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
           "refId": "A",
-          "legendFormat": "p95"
+          "legendFormat": "p95",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
           "refId": "B",
-          "legendFormat": "p50"
+          "legendFormat": "p50",
+          "exemplar": true
         }
       ],
       "options": {
@@ -906,7 +917,8 @@
         {
           "expr": "topk(5, histogram_quantile(0.95, sum by (le, handler) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))))",
           "refId": "A",
-          "legendFormat": "{{handler}}"
+          "legendFormat": "{{handler}}",
+          "exemplar": true
         }
       ],
       "options": {
