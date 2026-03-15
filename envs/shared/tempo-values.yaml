@@ -1,0 +1,63 @@
+# Grafana Tempo — single binary mode, Azure Blob Storage backend.
+# Single binary is sufficient at this scale; migrate to tempo-distributed
+# if trace volume grows significantly.
+#
+# Authentication: Workload Identity (no stored credentials).
+# The Tempo pod uses the service account created by Terraform in 02-bootstrap,
+# which is annotated with the managed identity client ID and has
+# Storage Blob Data Contributor on the tempo-traces container.
+
+tempo:
+  # OTLP receiver — services send traces to this endpoint.
+  # gRPC on 4317, HTTP on 4318.
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  storage:
+    trace:
+      backend: azure
+      azure:
+        # Container and storage account are provisioned by Terraform in 00-network.
+        # These values must match the Terraform outputs.
+        container_name: tempo-traces
+        storage_account_name: "urlplatobservability" # must match var.observability_storage_account_name in 00-network tfvars
+        # Use Workload Identity federated token — no access key needed.
+        # AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_FEDERATED_TOKEN_FILE are
+        # injected automatically by the Azure Workload Identity webhook.
+        use_federated_token: true
+      wal:
+        path: /var/tempo/wal
+      block:
+        version: vParquet4
+
+  # Retention: keep traces for 72 hours across all envs.
+  # Low-traffic portfolio project — short retention keeps storage costs near zero.
+  compactor:
+    compaction:
+      block_retention: 72h
+
+  # Search configuration — enables TraceQL queries in Grafana Explore.
+  ingester:
+    trace_idle_period: 10s
+    max_block_bytes: 1_000_000
+    max_block_duration: 5m
+
+serviceAccount:
+  # Use the service account pre-created by Terraform rather than letting
+  # the chart create one — Terraform manages the Workload Identity binding.
+  create: false
+  name: tempo
+
+# Required for Workload Identity webhook to inject the federated token.
+podLabels:
+  azure.workload.identity/use: "true"
+
+# Persist WAL to survive pod restarts without losing in-flight traces.
+persistence:
+  enabled: true
+  size: 2Gi

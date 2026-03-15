@@ -55,7 +55,7 @@ spec:
       targetRevision: main
       path: monitoring
       directory:
-        include: "loki-datasource.yaml"
+        include: "{loki,tempo}-datasource.yaml"
 
   syncPolicy:
     automated:
