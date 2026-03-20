@@ -4,7 +4,7 @@ images:
   redirectService:
     tag: sha-f15aa78
   analyticsService:
-    tag: sha-550ba88
+    tag: sha-921d849
   frontendService:
     tag: sha-e9f9c49
 ingress:
