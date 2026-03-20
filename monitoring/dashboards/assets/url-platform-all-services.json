@@ -839,17 +839,17 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status=~\"2..\"}[5m]))",
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"2..\"}[5m]))",
           "refId": "A",
           "legendFormat": "2xx"
         },
         {
-          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status=~\"4..\"}[5m]))",
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"4..\"}[5m]))",
           "refId": "B",
           "legendFormat": "4xx"
         },
         {
-          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status=~\"5..\"}[5m]))",
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\",status_code=~\"5..\"}[5m]))",
           "refId": "C",
           "legendFormat": "5xx"
         }
@@ -893,9 +893,9 @@
       },
       "targets": [
         {
-          "expr": "topk(10, sum by (handler) (rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
+          "expr": "topk(10, sum by (route) (rate(http_requests_total{namespace=\"$namespace\",service=\"analytics-service\"}[5m])))",
           "refId": "A",
-          "legendFormat": "{{handler}}"
+          "legendFormat": "{{route}}"
         }
       ],
       "options": {
@@ -915,9 +915,9 @@
       },
       "targets": [
         {
-          "expr": "topk(5, histogram_quantile(0.95, sum by (le, handler) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))))",
+          "expr": "topk(5, histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"analytics-service\"}[5m]))))",
           "refId": "A",
-          "legendFormat": "{{handler}}",
+          "legendFormat": "{{route}}",
           "exemplar": true
         }
       ],
