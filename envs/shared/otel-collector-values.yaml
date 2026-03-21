@@ -25,22 +25,6 @@ config:
           endpoint: 0.0.0.0:4318
 
   processors:
-    # Drop spans for probe and metrics endpoints — these are high-frequency,
-    # have no diagnostic value, and pollute Tempo with noise. Filtering at
-    # the collector is the most reliable approach: it works regardless of
-    # SDK language, instrumentation version, or ESM/CJS module quirks.
-    # http.target covers server-side spans; url.path covers client-side.
-    filter/drop_probes:
-      error_mode: ignore
-      traces:
-        span:
-          - 'attributes["http.target"] == "/health"'
-          - 'attributes["http.target"] == "/ready"'
-          - 'attributes["http.target"] == "/metrics"'
-          - 'attributes["url.path"] == "/health"'
-          - 'attributes["url.path"] == "/ready"'
-          - 'attributes["url.path"] == "/metrics"'
-
     # Batch traces before sending to Tempo — reduces number of requests
     # and improves throughput. 5s timeout balances latency vs efficiency.
     batch:
@@ -65,7 +49,7 @@ config:
     pipelines:
       traces:
         receivers: [otlp]
-        processors: [memory_limiter, filter/drop_probes, batch]
+        processors: [memory_limiter, batch]
         exporters: [otlp/tempo]
       # Disable default metrics and logs pipelines — we use Prometheus
       # and Loki/Alloy for those respectively.
