@@ -1,10 +1,10 @@
 images:
   urlService:
-    tag: sha-c660376
+    tag: sha-f8f08fe
   redirectService:
-    tag: sha-c660376
+    tag: sha-f8f08fe
   analyticsService:
-    tag: sha-c660376
+    tag: sha-f8f08fe
   frontendService:
     tag: sha-e9f9c49
 ingress:
