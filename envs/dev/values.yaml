@@ -1,6 +1,6 @@
 images:
   urlService:
-    tag: sha-5aa87bd
+    tag: sha-f6cf2fb
   redirectService:
     tag: sha-f8f08fe
   analyticsService:
