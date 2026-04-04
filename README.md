@@ -20,7 +20,7 @@ It defines **what is deployed** to each environment and is consumed by **ArgoCD*
 | Repo | Responsibility |
 |---|---|
 | `production-url-platform` | Application code, Helm chart, CI (build/test/publish images) |
-| `production-url-platform-gitops` | ArgoCD Applications, per-environment values, Grafana dashboards, smoke tests |
+| `production-url-platform-gitops` | ArgoCD Applications, per-environment values, observability stack config, Grafana dashboards, smoke tests |
 
 ---
 
@@ -34,6 +34,10 @@ It defines **what is deployed** to each environment and is consumed by **ArgoCD*
 │   │   └── url-platform.yaml     # ArgoCD AppProject for the URL platform
 │   └── applications/
 │       ├── monitoring.yaml       # kube-prometheus-stack Application
+│       ├── alloy.yaml            # Grafana Alloy log collection agent
+│       ├── loki.yaml             # Grafana Loki log aggregation
+│       ├── tempo.yaml            # Grafana Tempo distributed tracing
+│       ├── otel-collector.yaml   # OpenTelemetry Collector (trace ingestion)
 │       ├── url-platform-dev.yaml
 │       ├── url-platform-stg.yaml
 │       └── url-platform-prod.yaml
@@ -41,13 +45,20 @@ It defines **what is deployed** to each environment and is consumed by **ArgoCD*
 ├── envs/
 │   ├── dev/values.yaml           # Dev image tags + host names + feature flags
 │   ├── stg/values.yaml           # Stg image tags + host names + feature flags
-│   └── prod/values.yaml          # Prod image tags + host names + feature flags
+│   ├── prod/values.yaml          # Prod image tags + host names + feature flags
+│   └── shared/                   # Shared values for cluster-wide platform tooling
+│       ├── alloy-values.yaml
+│       ├── loki-values.yaml
+│       ├── otel-collector-values.yaml
+│       └── tempo-values.yaml
 │
 ├── monitoring/
-│   └── dashboards/
-│       ├── kustomization.yaml
-│       └── assets/
-│           └── url-platform-all-services.json   # Grafana dashboard
+│   ├── dashboards/
+│   │   ├── kustomization.yaml
+│   │   └── assets/
+│   │       └── url-platform-all-services.json   # Grafana dashboard
+│   ├── loki-datasource.yaml      # Grafana Loki datasource (with Tempo trace links)
+│   └── tempo-datasource.yaml     # Grafana Tempo datasource (with Loki log links)
 │
 └── .github/workflows/
     ├── _smoke-env.yml            # Reusable smoke test workflow
@@ -145,6 +156,22 @@ ArgoCD is installed and managed via Terraform in the application repository (`in
 - `AppProject` resources for access control and source restrictions
 - `Application` resources per environment, using multi-source to combine chart + values
 - Automated sync with self-healing and pruning enabled
+
+---
+
+## Observability stack
+
+In addition to the URL platform applications, this repo manages the full observability stack deployed to the `monitoring` namespace:
+
+| Component | Chart | Purpose |
+|---|---|---|
+| kube-prometheus-stack | `prometheus-community/kube-prometheus-stack` | Prometheus, Alertmanager, Grafana |
+| Grafana Alloy | `grafana/alloy` | DaemonSet log collector — scrapes pod logs, parses JSON, ships to Loki |
+| Grafana Loki | `grafana/loki` | Log aggregation backend |
+| Grafana Tempo | `grafana/tempo` | Distributed tracing backend (Azure Blob Storage, Workload Identity) |
+| OpenTelemetry Collector | `open-telemetry/opentelemetry-collector` | OTLP trace ingestion → Tempo |
+
+Shared values for these components live in `envs/shared/`. Grafana datasource ConfigMaps (`monitoring/loki-datasource.yaml`, `monitoring/tempo-datasource.yaml`) wire up cross-signal correlation: traces link to logs, logs link to traces, both link to Prometheus metrics.
 
 ---
 
